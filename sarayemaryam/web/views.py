@@ -44,7 +44,7 @@ def register_user(request):
 
 @require_http_methods(['POST'])
 @csrf_exempt
-def login(request):
+def login_user(request):
     """ this function for check username with password and return user info
     """
 
@@ -60,7 +60,17 @@ def login(request):
 
         if users_list:
             user = User.objects.filter(username = username, password = password).get()
+
             context['status'] = 'ok'
+
+            context['username'] = user.username
+            context['phone'] = user.password
+            context['address'] = user.address
+            context['post_code'] = user.post_code
+
+            return JsonResponse(context, encoder=JSONEncoder)
         else:
             context['status'] = 'error'
             context['meessage'] = 'username or password is wrong'
+
+            return JsonResponse(context, encoder=JSONEncoder)

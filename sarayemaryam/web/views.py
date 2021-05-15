@@ -7,6 +7,9 @@ from .models import *
 
 # Create your views here.
 
+
+# account views
+
 @require_http_methods(['POST'])
 @csrf_exempt
 def register_user(request):
@@ -74,3 +77,61 @@ def login_user(request):
             context['meessage'] = 'username or password is wrong'
 
             return JsonResponse(context, encoder=JSONEncoder)
+
+
+@require_http_methods(['POST'])
+@csrf_exempt
+def edit_user_account(request):
+    """ this function for update user info ( password, phone, address, post_code)
+    """
+
+    context = {}
+
+    # print(request.POST)
+
+    if request.POST.get('old_username')\
+    and request.POST.get('password'):
+        old_username = request.POST.get('old_username')
+        new_username = request.POST.get('new_username')
+        password = request.POST.get('password')
+        old_phone = request.POST.get('old_phone')
+        new_phone = request.POST.get('new_phone')
+        post_code = request.POST.get('post_code')
+        address = request.POST.get('address')
+        
+        users_list = User.objects.filter(username = old_username)
+
+
+        if users_list:
+            if old_username != new_username:
+                users_list = User.objects.filter(username = new_username)
+                if users_list:
+                    context['status'] = 'error'
+                    context['message'] = 'Duplicate username'
+                    return JsonResponse(context, encoder=JSONEncoder)
+                else:
+                    if old_phone != new_phone:
+                        users_list = User.objects.filter(username = old_username, phone = new_phone)
+                        if users_list:
+                            context['status'] = 'error'
+                            context['message'] = 'Duplicate phone'
+                            return JsonResponse(context, encoder=JSONEncoder)
+                        else:
+
+                            user = User.objects.filter(username = old_username, password = password)
+
+                            user.update(username = new_username,
+                                            password = password,
+                                            phone = new_phone,
+                                            post_code = post_code,
+                                            address = address)
+                
+                            context['status'] = 'ok'
+                            context['username'] = new_username
+                            context['phone'] = password
+                            context['post_code'] = post_code
+                            context['address'] = address
+                            return JsonResponse(context, encoder=JSONEncoder)
+        context['status'] = 'error'
+        return JsonResponse(context, encoder=JSONEncoder)
+        
